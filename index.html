@@ -1,0 +1,591 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>버팀일지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: single phone-width column, waybill-styled log cards, bottom tab bar. Accent = dawn blue, highlight = box-tape amber. */
+:root{
+  --bg:#F2F3EF; --surface:#FFFFFF; --ink:#18232A; --muted:#5E6B70; --line:#D9DDD6;
+  --accent:#2A55D9; --accent-soft:#E3E9FB; --tape:#D98E1E; --tape-soft:#FBEFD9;
+  --good:#2E8B57; --good-soft:#E2F2E8; --warn:#C2410C; --shade:rgba(16,23,28,.55);
+  --f-display:"Black Han Sans","IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10171C; --surface:#18222A; --ink:#E8ECEA; --muted:#98A5AA; --line:#2A363E;
+  --accent:#7C9BFF; --accent-soft:#1E2A4A; --tape:#F2B656; --tape-soft:#33291A;
+  --good:#5CC48A; --good-soft:#173326; --warn:#F08A5D; --shade:rgba(0,0,0,.65); color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#10171C; --surface:#18222A; --ink:#E8ECEA; --muted:#98A5AA; --line:#2A363E;
+  --accent:#7C9BFF; --accent-soft:#1E2A4A; --tape:#F2B656; --tape-soft:#33291A;
+  --good:#5CC48A; --good-soft:#173326; --warn:#F08A5D; --shade:rgba(0,0,0,.65); color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;padding:0 16px;padding-block:0 96px}
+.app{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:18px;padding-top:18px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:26px} h2{font-size:20px} h3{font-size:16px}
+p{margin:0}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.label{font-size:12px;letter-spacing:.06em;color:var(--muted);font-weight:500}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.sync{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 10px;white-space:nowrap}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.sample{background:var(--tape-soft);border:1px dashed var(--tape);border-radius:12px;padding:10px 14px;font-size:13px}
+.quote{border-left:4px solid var(--tape);padding:4px 0 4px 14px;display:flex;flex-direction:column;gap:6px}
+.quote p{font-size:18px;font-weight:500;line-height:1.55}
+.dday{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.dday b{font-family:var(--f-display);font-weight:400;font-size:44px;line-height:1;color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat .v{font-size:22px;font-weight:700}
+.delta{font-size:12px;font-weight:700;border-radius:99px;padding:1px 8px;align-self:flex-start}
+.delta.up{background:var(--good-soft);color:var(--good)}
+.delta.flat{background:var(--line);color:var(--muted)}
+.stage{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.stage div{height:8px;border-radius:4px;background:var(--line)}
+.stage div.done{background:var(--accent)}
+.stage div.now{background:var(--tape)}
+.stage-names{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-size:11px;color:var(--muted);text-align:center}
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:13px 16px;cursor:pointer;background:var(--accent);color:var(--surface);width:100%}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.tape{background:var(--tape);color:#1d1406}
+.btn:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.tab:focus-visible,.mood button:focus-visible{outline:3px solid var(--tape);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 140px}
+.chart{width:100%;overflow-x:auto}
+.chart svg{display:block;width:100%;height:auto}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+/* waybill log */
+.waybill{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.waybill .wb-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--accent-soft);font-size:13px;font-weight:700;gap:8px}
+.bars{height:14px;flex:0 0 64px;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 8px);opacity:.5}
+.wb-body{display:grid;grid-template-columns:repeat(4,1fr);padding:10px 12px;gap:6px;font-size:13px}
+.wb-body span{display:block;font-size:11px;color:var(--muted)}
+.wb-foot{display:flex;justify-content:space-between;gap:8px;padding:0 12px 10px;font-size:13px;color:var(--muted);align-items:center}
+.wb-foot button{font:inherit;font-size:12px;background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:2px 8px;cursor:pointer}
+form{display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:13px;font-weight:500}
+input,textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:72px}
+.mood{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mood button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:9px 4px;cursor:pointer}
+.mood button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.badge{border:1px dashed var(--line);border-radius:12px;padding:10px 6px;text-align:center;font-size:12px;color:var(--muted);min-width:0}
+.badge b{display:block;font-family:var(--f-display);font-weight:400;font-size:18px;color:var(--muted)}
+.badge.on{border:1px solid var(--tape);background:var(--tape-soft);color:var(--ink)}
+.badge.on b{color:var(--tape)}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+.tabs-in{display:grid;grid-template-columns:repeat(4,1fr);max-width:520px;width:100%}
+.tab{font:inherit;font-size:13px;background:none;border:0;color:var(--muted);padding:12px 4px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tab svg{width:22px;height:22px}
+.tab[aria-selected="true"]{color:var(--accent);font-weight:700}
+.fab{position:fixed;right:max(16px,calc(50% - 244px));bottom:calc(78px + env(safe-area-inset-bottom,0px));z-index:6;width:auto;border-radius:99px;padding:12px 20px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.overlay{position:fixed;inset:0;background:var(--shade);z-index:10;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:20px 16px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));max-height:92%;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.x{font:inherit;background:none;border:0;color:var(--muted);font-size:14px;cursor:pointer;padding:6px}
+.breath{width:150px;height:150px;border-radius:50%;margin:8px auto;background:var(--accent-soft);border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);animation:breathe 8s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(.72)}50%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.breath{animation:none}}
+.steps{display:flex;gap:6px}
+.steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.steps i.on{background:var(--tape)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(140px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;z-index:20;max-width:min(440px,calc(100% - 32px))}
+.big{font-size:20px;font-weight:700;line-height:1.5}
+.list{display:flex;flex-direction:column;gap:8px}
+.why{background:var(--tape-soft);border-radius:12px;padding:14px;font-size:17px;font-weight:500;white-space:pre-wrap;overflow-wrap:anywhere}
+hr{border:0;border-top:1px solid var(--line);margin:0}
+.pledge{border:2px solid var(--tape);background:var(--surface)}
+.pledge-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:99px;padding:5px 12px;cursor:pointer;text-align:left}
+.chip:focus-visible{outline:3px solid var(--tape);outline-offset:2px}
+.pledge-text{font-size:19px;font-weight:500;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.sign{display:flex;justify-content:flex-end;align-items:baseline;gap:8px;font-size:14px;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px}
+.sign b{font-family:var(--f-display);font-weight:400;font-size:18px;color:var(--ink)}
+</style>
+
+<div class="app" id="app"></div>
+<button class="btn fab" id="fab" type="button">+ 오늘 기록</button>
+<nav class="tabs" aria-label="메뉴"><div class="tabs-in" role="tablist" id="tabs"></div></nav>
+<div id="layer"></div>
+
+<script>
+(function(){
+const QUOTES=[
+"오늘 못 찾은 주소는 내일 기억하는 주소가 됩니다.",
+"처음 2주가 가장 무겁습니다. 기사님은 지금 그 무게를 들고 계십니다.",
+"빨라지는 건 다리가 아니라 머리입니다. 동선이 외워지는 중입니다.",
+"오늘 늦은 건 실력이 아니라 경험의 문제입니다. 경험은 매일 쌓입니다.",
+"선배 기사님들도 첫 달엔 다 길을 헤맸습니다.",
+"한 박스 한 박스가 누군가의 기다림이었습니다. 오늘도 그 기다림을 채우셨습니다.",
+"힘든 날에 그만두지 말고, 괜찮은 날에 결정하세요.",
+"어제보다 10분 빨랐다면, 그건 운이 아니라 기사님 몸이 배운 겁니다.",
+"구역은 결국 익숙해집니다. 익숙해지면 수입이 따라옵니다.",
+"오늘 하루를 끝까지 마친 것, 그것만으로 충분히 잘하셨습니다.",
+"숫자는 거짓말을 하지 않습니다. 기록을 보면 기사님은 분명 나아지고 있습니다.",
+"잠깐 쉬는 것은 포기가 아닙니다. 다시 달리기 위한 준비입니다.",
+"처음엔 하루가 길고, 석 달이 지나면 하루가 짧아집니다.",
+"엘리베이터 기다리는 시간까지 계산되기 시작하면, 이미 반은 적응하신 겁니다.",
+"내가 왜 시작했는지, 오늘 한 번 더 떠올려 보세요.",
+"몸이 힘든 날엔 밥부터 챙기세요. 기사님이 가장 중요한 장비입니다.",
+"남과 비교하지 마세요. 비교할 사람은 지난주의 나 하나면 됩니다.",
+"오늘 실수한 배송 하나가 내일의 꼼꼼함을 만듭니다.",
+"가장 어두운 시간은 새벽 직전입니다. 기사님은 그 새벽을 매일 여는 사람입니다.",
+"버틴 하루는 사라지지 않고 실력으로 남습니다.",
+"첫 달의 고생은 둘째 달의 여유로 돌아옵니다.",
+"지금 힘든 건 잘못 고른 길이라서가 아니라, 아직 길이 낯설어서입니다.",
+"오늘은 오늘 몫만 하면 됩니다. 내일 일은 내일의 기사님이 합니다.",
+"한 달 전의 나는 지금의 속도를 상상도 못 했습니다.",
+"무거운 짐을 든 만큼, 가족의 짐은 가벼워지고 있습니다.",
+"길을 외우는 데는 시간이 걸리지만, 한 번 외운 길은 오래 갑니다.",
+"그만두고 싶은 마음이 드는 건 이상한 게 아닙니다. 그 마음을 넘긴 날들이 쌓여 지금의 기사님이 되었습니다.",
+"오늘 완료 처리한 건수, 그게 기사님이 해낸 증거입니다.",
+"속도는 따라옵니다. 지금은 안전하게, 정확하게만 하세요.",
+"3개월 뒤의 내가 오늘의 나에게 고맙다고 할 겁니다."
+];
+const STAGES=[
+ {name:"길 익히기",from:0,to:14,text:"가장 힘든 시기입니다. 하루를 끝까지 마치는 것이 목표입니다."},
+ {name:"동선 잡기",from:15,to:30,text:"구역이 머릿속에 그려지기 시작합니다. 헤매는 시간이 줄어듭니다."},
+ {name:"속도 붙기",from:31,to:90,text:"건당 걸리는 시간이 눈에 띄게 줄어드는 시기입니다."},
+ {name:"안정기",from:91,to:180,text:"보통 3개월 무렵이면 몸이 익고 수입이 자리를 잡습니다."},
+ {name:"숙련기",from:181,to:99999,text:"이제 후배에게 길을 알려줄 수 있는 기사님입니다."}
+];
+const MOODS=[["hard","힘들었어요"],["ok","보통이에요"],["good","괜찮았어요"]];
+
+/* ---------- state ---------- */
+const DEF_SETTINGS={name:"",start:"",unit:800,workdays:24,why:"",goal:"",goalIncome:0,holds:0,lastHold:"",pledge:"",pledgeDate:""};
+const PLEDGE_HINTS=["석 달은 무슨 일이 있어도 버틴다","힘든 날엔 그만두지 않고 하루만 더 해본다","속도보다 안전이 먼저다","하루도 빠짐없이 운행일지를 쓴다","모르는 건 선배에게 바로 묻는다"];
+let state={entries:[],settings:{...DEF_SETTINGS}};
+let tab="home", db=null, docRef=null, writing=false, pending=false;
+const LS="beotim-ilji-v1";
+function loadLocal(){try{const r=localStorage.getItem(LS);if(r){const v=JSON.parse(r);adopt(v)}}catch(e){}}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}}
+function adopt(v){if(!v||typeof v!=="object")return;state={entries:Array.isArray(v.entries)?v.entries.filter(e=>e&&e.d):[],settings:{...DEF_SETTINGS,...(v.settings||{})}}}
+async function persist(){
+  saveLocal();
+  if(!docRef)return;
+  if(writing){pending=true;return}
+  writing=true;
+  try{await docRef.set(JSON.parse(JSON.stringify(state)))}
+  catch(e){const c=e&&e.code;if(c!=="unavailable"&&c!=="resource_exhausted"){docRef=null;renderSync()}}
+  writing=false;
+  if(pending){pending=false;persist()}
+}
+async function initCloud(){
+  try{
+    if(!window.claude||!window.claude.use)return;
+    const [d,u]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);
+    if(!d||!u)return;
+    const id=await u.id(); if(!id)return;
+    const ref=d.doc("data/users/"+id+"/state");
+    const snap=await ref.get();
+    if(snap.exists){adopt(JSON.parse(JSON.stringify(snap.data())));saveLocal();docRef=ref;render()}
+    else{docRef=ref;if(state.entries.length||state.settings.why)await persist()}
+    renderSync();
+  }catch(e){docRef=null}
+}
+
+/* ---------- date helpers ---------- */
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const today=()=>ymd(new Date());
+const daysBetween=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
+const hm=s=>{if(!s)return null;const [h,m]=s.split(":").map(Number);return h*60+m};
+const won=v=>Math.round(v).toLocaleString("ko-KR")+"원";
+const man=v=>{const x=v/10000;return (x>=100?Math.round(x).toLocaleString("ko-KR"):x.toFixed(x<10?1:0))+"만"};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- sample data (shown only until the first real entry) ---------- */
+function sampleEntries(){
+  const out=[];const base=new Date();base.setDate(base.getDate()-44);
+  for(let i=0;i<45;i++){
+    const d=new Date(base);d.setDate(base.getDate()+i);
+    if(d.getDay()===0)continue;
+    const t=i/44, wob=Math.sin(i*1.7)*8;
+    const qty=Math.round(105+t*95+wob);
+    const work=Math.round((11.2-t*1.9+Math.cos(i)*0.3)*60);
+    const inM=7*60, outM=inM+work;
+    out.push({d:ymd(d),in:"07:00",out:pad(Math.floor(outM/60)%24)+":"+pad(outM%60),qty,inc:0,mood:i<12&&i%3===0?"hard":(i%4===0?"good":"ok"),memo:""});
+  }
+  return out;
+}
+function isSample(){return state.entries.length===0}
+function S(){return isSample()?{...state.settings,start:state.settings.start||sampleEntries()[0].d}:state.settings}
+
+/* ---------- metrics ---------- */
+function enrich(list){
+  const s=S();
+  return list.slice().sort((a,b)=>a.d<b.d?-1:1).map(e=>{
+    let a=hm(e.in),b=hm(e.out),h=null;
+    if(a!=null&&b!=null){let m=b-a;if(m<=0)m+=1440;h=m/60}
+    const inc=Number(e.inc)>0?Number(e.inc):(Number(e.qty)||0)*(Number(s.unit)||0);
+    return {...e,qty:Number(e.qty)||0,hours:h,pph:h?e.qty/h:null,minPer:h&&e.qty?h*60/e.qty:null,income:inc};
+  });
+}
+function data(){return enrich(isSample()?sampleEntries():state.entries)}
+const avg=a=>{const v=a.filter(x=>x!=null&&isFinite(x));return v.length?v.reduce((p,c)=>p+c,0)/v.length:null};
+function weeks(rows){
+  if(!rows.length)return[];
+  const s=S().start||rows[0].d;const map=new Map();
+  rows.forEach(r=>{const w=Math.max(0,Math.floor(daysBetween(s,r.d)/7));if(!map.has(w))map.set(w,[]);map.get(w).push(r)});
+  return [...map.entries()].sort((a,b)=>a[0]-b[0]).map(([w,rs])=>({w:w+1,pph:avg(rs.map(r=>r.pph)),qty:avg(rs.map(r=>r.qty)),hours:avg(rs.map(r=>r.hours)),minPer:avg(rs.map(r=>r.minPer)),inc:avg(rs.map(r=>r.income)),n:rs.length}));
+}
+function months(rows){
+  const map=new Map();rows.forEach(r=>{const k=r.d.slice(0,7);map.set(k,(map.get(k)||0)+r.income)});
+  return [...map.entries()].sort((a,b)=>a[0]<b[0]?-1:1).map(([k,v])=>({k,v}));
+}
+function projection(rows){
+  const s=S();const W=Number(s.workdays)||24;
+  if(rows.length<3)return null;
+  const recent=rows.slice(-14);const daily=avg(recent.map(r=>r.income));
+  const cur=daily*W;
+  const fit=rows.slice(-28);const x0=fit[0].d;
+  const xs=fit.map(r=>daysBetween(x0,r.d)),ys=fit.map(r=>r.income);
+  const mx=avg(xs),my=avg(ys);let num=0,den=0;
+  xs.forEach((x,i)=>{num+=(x-mx)*(ys[i]-my);den+=(x-mx)**2});
+  const slope=den?num/den:0;
+  const out=[];let total=cur;const cap=cur*1.6;
+  for(let k=1;k<=3;k++){
+    const gain=slope>0?slope*30*W*Math.pow(0.6,k-1):0;
+    total=Math.min(cap,total+gain);out.push(total);
+  }
+  return {daily,cur,slope,next:out,W};
+}
+
+/* ---------- charts (SVG, drawn to scale) ---------- */
+function niceTicks(lo,hi,n){
+  const span=hi-lo||1;const raw=span/n;const p=Math.pow(10,Math.floor(Math.log10(raw)));
+  const step=[1,2,2.5,5,10].map(m=>m*p).find(s=>s>=raw)||p*10;
+  const a=Math.floor(lo/step)*step,b=Math.ceil(hi/step)*step;const t=[];
+  for(let v=a;v<=b+step/2;v+=step)t.push(+v.toFixed(6));return t;
+}
+function lineChart(vals,labels,fmt){
+  const W=340,H=180,L=38,R=14,T=18,B=28;
+  const v=vals.map(x=>x??0);const t=niceTicks(Math.min(...v)*0.92,Math.max(...v)*1.05,4);
+  const lo=t[0],hi=t[t.length-1];
+  const X=i=>L+(v.length===1?(W-L-R)/2:i*(W-L-R)/(v.length-1));const Y=y=>T+(H-T-B)*(1-(y-lo)/(hi-lo||1));
+  let g=t.map(y=>`<line x1="${L}" x2="${W-R}" y1="${Y(y)}" y2="${Y(y)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${Y(y)+4}" text-anchor="end" font-size="10" fill="var(--muted)">${fmt(y)}</text>`).join("");
+  const pts=v.map((y,i)=>`${X(i)},${Y(y)}`).join(" ");
+  const area=`M${X(0)},${Y(lo)} L${pts.replace(/ /g," L")} L${X(v.length-1)},${Y(lo)} Z`;
+  const every=Math.ceil(v.length/7);
+  const xl=labels.map((l,i)=>(i%every===0||i===v.length-1)?`<text x="${X(i)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${l}</text>`:"").join("");
+  const li=v.length-1;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="주별 변화 그래프">${g}<path d="${area}" fill="var(--accent-soft)"/><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${v.map((y,i)=>`<circle cx="${X(i)}" cy="${Y(y)}" r="${i===li?5:2.5}" fill="${i===li?"var(--tape)":"var(--accent)"}" stroke="var(--surface)" stroke-width="${i===li?2:0}"/>`).join("")}<text x="${Math.min(X(li),W-R)}" y="${Y(v[li])-10}" text-anchor="end" font-size="11" font-weight="700" fill="var(--ink)">${fmt(v[li])}</text>${xl}</svg>`;
+}
+function incomeChart(ms,proj){
+  const W=340,H=200,L=40,R=10,T=22,B=30;
+  const cm=today().slice(0,7);
+  const bars=ms.slice(-4).map(m=>({label:+m.k.slice(5)+"월",v:m.v,kind:m.k===cm?"now":"past"}));
+  if(proj){let [y,mo]=cm.split("-").map(Number);proj.next.forEach(v=>{mo++;if(mo>12){mo=1;y++}bars.push({label:mo+"월",v,kind:"proj"})})}
+  if(!bars.length)return"";
+  const maxV=Math.max(...bars.map(b=>b.v),proj?proj.cur:0);
+  const t=niceTicks(0,maxV*1.08,4);const hi=t[t.length-1];
+  const Y=y=>T+(H-T-B)*(1-y/hi);const bw=(W-L-R)/bars.length;
+  let g=t.map(y=>`<line x1="${L}" x2="${W-R}" y1="${Y(y)}" y2="${Y(y)}" stroke="var(--line)"/><text x="${L-6}" y="${Y(y)+4}" text-anchor="end" font-size="10" fill="var(--muted)">${man(y)}</text>`).join("");
+  bars.forEach((b,i)=>{
+    const x=L+i*bw+bw*0.18,w=bw*0.64,y=Y(b.v),h=Y(0)-y;
+    if(b.kind==="proj")g+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="var(--tape-soft)" stroke="var(--tape)" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+    else g+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${b.kind==="now"?"var(--accent-soft)":"var(--accent)"}" stroke="${b.kind==="now"?"var(--accent)":"none"}" stroke-width="1.5"/>`;
+    g+=`<text x="${x+w/2}" y="${y-6}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ink)">${man(b.v)}</text><text x="${x+w/2}" y="${H-10}" text-anchor="middle" font-size="11" fill="var(--muted)">${b.label}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="월별 수입과 예상 수입">${g}</svg>`;
+}
+
+/* ---------- views ---------- */
+function quoteOfDay(){const d=parse(today());const n=Math.floor(d/864e5);return QUOTES[((n%QUOTES.length)+QUOTES.length)%QUOTES.length]}
+function stageOf(days){return STAGES.findIndex(s=>days>=s.from&&days<=s.to)}
+function deltaPct(a,b,inverse){if(a==null||b==null||!a)return null;let p=(b-a)/a*100;if(inverse)p=-p;return p}
+function deltaTag(p,txt){if(p==null)return"";if(p<1)return`<span class="delta flat">비슷해요</span>`;return`<span class="delta up">${txt?txt:("+"+Math.round(p)+"%")}</span>`}
+
+function viewHome(){
+  const rows=data(),s=S(),ws=weeks(rows);
+  const days=s.start?daysBetween(s.start,today())+1:rows.length;
+  const si=Math.max(0,stageOf(days-1));
+  const first=ws[0],last=ws[ws.length-1];
+  const minSaved=first&&last&&first.minPer&&last.minPer?first.minPer-last.minPer:null;
+  const total=rows.reduce((p,r)=>p+r.qty,0);
+  const hard=rows.filter(r=>r.mood==="hard").length;
+  const name=s.name?esc(s.name)+" 기사님":"기사님";
+  return `
+  ${isSample()?`<div class="sample">지금 보이는 숫자는 <b>예시</b>입니다. 아래 <b>+ 오늘 기록</b>을 눌러 첫 기록을 남기면 기사님의 기록으로 바뀝니다.</div>`:""}
+  <div class="top"><div><p class="label">${name}의 운행 ${days}일째</p><h1>오늘도 출근하셨네요</h1></div><span class="sync" id="sync"></span></div>
+  ${state.settings.pledge?"":pledgeForm()}
+  <section class="card"><div class="quote"><p>${esc(quoteOfDay())}</p><span class="small muted">오늘의 한마디</span></div></section>
+  ${state.settings.pledge?pledgeCard():""}
+  <section class="card">
+    <div class="dday"><b class="num">D+${days}</b><span class="muted">지금은 <b style="color:var(--ink)">${STAGES[si].name}</b> 구간입니다</span></div>
+    <div class="stage">${STAGES.map((x,i)=>`<div class="${i<si?"done":i===si?"now":""}"></div>`).join("")}</div>
+    <div class="stage-names">${STAGES.map(x=>`<span>${x.name}</span>`).join("")}</div>
+    <p class="small muted">${STAGES[si].text}</p>
+  </section>
+  ${first&&last&&ws.length>1?`
+  <section class="card">
+    <h2>첫 주의 나 vs 이번 주의 나</h2>
+    <div class="grid2">
+      <div class="stat"><span class="label">한 건 배송에 걸린 시간</span><span class="v num">${last.minPer?last.minPer.toFixed(1):"-"}분</span><span class="small muted num">첫 주 ${first.minPer?first.minPer.toFixed(1):"-"}분</span>${deltaTag(deltaPct(first.minPer,last.minPer,true),minSaved>0?minSaved.toFixed(1)+"분 단축":"")}</div>
+      <div class="stat"><span class="label">하루 배송 수량</span><span class="v num">${Math.round(last.qty)}건</span><span class="small muted num">첫 주 ${Math.round(first.qty)}건</span>${deltaTag(deltaPct(first.qty,last.qty))}</div>
+      <div class="stat"><span class="label">시간당 배송</span><span class="v num">${last.pph?last.pph.toFixed(1):"-"}건</span><span class="small muted num">첫 주 ${first.pph?first.pph.toFixed(1):"-"}건</span>${deltaTag(deltaPct(first.pph,last.pph))}</div>
+      <div class="stat"><span class="label">하루 평균 수입</span><span class="v num">${man(last.inc)}원</span><span class="small muted num">첫 주 ${man(first.inc)}원</span>${deltaTag(deltaPct(first.inc,last.inc))}</div>
+    </div>
+  </section>`:`<section class="card"><h2>성장 비교는 2주차부터</h2><p class="muted">기록이 일주일 넘게 쌓이면 첫 주의 나와 이번 주의 나를 나란히 비교해 드립니다.</p></section>`}
+  <section class="card">
+    <h2>지금까지 해낸 것</h2>
+    <div class="grid2">
+      <div class="stat"><span class="label">일한 날</span><span class="v num">${rows.length}일</span></div>
+      <div class="stat"><span class="label">누적 배송</span><span class="v num">${total.toLocaleString("ko-KR")}건</span></div>
+    </div>
+    ${hard?`<p class="small">힘들었던 날이 <b>${hard}번</b> 있었습니다. 그래도 기사님은 그다음 날 다시 나오셨습니다.</p>`:""}
+  </section>
+  <button class="btn tape" type="button" data-act="quit">오늘 그만두고 싶어요</button>`;
+}
+
+function pledgeForm(){
+  const s=state.settings;
+  return `<section class="card pledge">
+    <div class="pledge-head"><h2>처음 시작하며 나에게 하는 다짐</h2><span class="small muted num">${today().replace(/-/g,".")}</span></div>
+    <p class="small muted">지금 이 마음을 적어 두세요. 힘든 날 이 다짐을 다시 보여드립니다. 아래 예시를 눌러 시작해도 됩니다.</p>
+    <form id="pledge-form">
+      <div class="field"><label for="p-text">나의 다짐</label><textarea id="p-text" maxlength="300" placeholder="예: 석 달은 무슨 일이 있어도 버틴다. 우리 가족 생활비는 내가 책임진다.">${esc(s.pledge)}</textarea></div>
+      <div class="chips">${PLEDGE_HINTS.map(h=>`<button class="chip" type="button" data-hint="${esc(h)}">${esc(h)}</button>`).join("")}</div>
+      <div class="field"><label for="p-name">서명(이름)</label><input id="p-name" value="${esc(s.name)}" placeholder="예: 김민수" maxlength="20"></div>
+      <button class="btn tape" type="submit">이 다짐으로 시작하기</button>
+    </form>
+  </section>`;
+}
+function pledgeCard(){
+  const s=state.settings;
+  return `<section class="card pledge">
+    <div class="pledge-head"><h3>나의 다짐</h3><span class="small muted num">${esc((s.pledgeDate||"").replace(/-/g,"."))}에 적음</span></div>
+    <p class="pledge-text">${esc(s.pledge)}</p>
+    <div class="sign"><span>스스로에게 약속한 사람</span><b>${esc(s.name||"나")}</b></div>
+  </section>`;
+}
+
+function viewGrow(){
+  const rows=data(),ws=weeks(rows);
+  const recent=rows.slice().reverse().slice(0,isSample()?5:30);
+  return `
+  ${isSample()?`<div class="sample">예시 데이터입니다. 첫 기록을 남기면 기사님의 기록으로 바뀝니다.</div>`:""}
+  <div><p class="label">눈으로 보는 성장</p><h1>매주 조금씩 빨라지고 있어요</h1></div>
+  ${ws.length>1?`
+  <section class="card"><h2>시간당 배송 건수</h2><p class="small muted">주차별 평균입니다. 선이 올라갈수록 같은 시간에 더 많이 배송하고 있다는 뜻입니다.</p><div class="chart">${lineChart(ws.map(w=>w.pph),ws.map(w=>w.w+"주"),y=>y.toFixed(0))}</div></section>
+  <section class="card"><h2>한 건에 걸리는 시간</h2><p class="small muted">주차별 평균(분)입니다. 선이 내려갈수록 손에 익은 것입니다.</p><div class="chart">${lineChart(ws.map(w=>w.minPer),ws.map(w=>w.w+"주"),y=>y.toFixed(1))}</div></section>
+  <section class="card"><h2>하루 근무 시간</h2><p class="small muted">입차부터 배송 완료까지, 주차별 평균(시간)입니다.</p><div class="chart">${lineChart(ws.map(w=>w.hours),ws.map(w=>w.w+"주"),y=>y.toFixed(1))}</div></section>`
+  :`<section class="card"><p class="muted">기록이 2주 이상 쌓이면 주차별 그래프가 나타납니다.</p></section>`}
+  <section class="card"><h2>이정표</h2><div class="badges">${badges(rows,ws).map(b=>`<div class="badge ${b.on?"on":""}"><b>${b.big}</b>${b.t}</div>`).join("")}</div></section>
+  <section class="card"><h2>운행일지</h2><div class="list">${recent.map(r=>waybill(r)).join("")||'<p class="muted">아직 기록이 없습니다.</p>'}</div></section>`;
+}
+function waybill(r){
+  const moodTxt={hard:"힘든 날",ok:"보통",good:"괜찮은 날"}[r.mood]||"";
+  return `<article class="waybill"><div class="wb-head"><span class="num">${r.d.replace(/-/g,".")} 운행</span><span class="bars" aria-hidden="true"></span></div>
+  <div class="wb-body num"><div><span>입차</span>${esc(r.in||"-")}</div><div><span>완료</span>${esc(r.out||"-")}</div><div><span>수량</span>${r.qty}건</div><div><span>건당</span>${r.minPer?r.minPer.toFixed(1)+"분":"-"}</div></div>
+  <div class="wb-foot"><span>${moodTxt}${r.memo?" · "+esc(r.memo):""} · ${man(r.income)}원</span>${isSample()?"":`<span><button type="button" data-edit="${r.d}">수정</button> <button type="button" data-del="${r.d}">삭제</button></span>`}</div></article>`;
+}
+function badges(rows,ws){
+  const total=rows.reduce((p,r)=>p+r.qty,0),n=rows.length;
+  const up=ws.length>1&&ws[0].pph?(ws[ws.length-1].pph-ws[0].pph)/ws[0].pph:0;
+  const best=Math.max(0,...months(rows).map(m=>m.v));
+  return [
+    {big:"1일",t:"첫 기록",on:n>=1},{big:"7일",t:"일주일 버팀",on:n>=7},{big:"30일",t:"한 달 버팀",on:n>=30},
+    {big:"100일",t:"백일 기사",on:n>=100},{big:"1천",t:"누적 1,000건",on:total>=1000},{big:"5천",t:"누적 5,000건",on:total>=5000},
+    {big:"1만",t:"누적 10,000건",on:total>=10000},{big:"+20%",t:"첫 주보다 빨라짐",on:up>=.2},{big:"+50%",t:"첫 주보다 훨씬 빨라짐",on:up>=.5},
+    {big:"300만",t:"월 수입 300만",on:best>=3e6},{big:"500만",t:"월 수입 500만",on:best>=5e6},{big:"700만",t:"월 수입 700만",on:best>=7e6}
+  ];
+}
+
+function viewMoney(){
+  const rows=data(),s=S(),ms=months(rows),p=projection(rows);
+  const goal=Number(s.goalIncome)||0;
+  let goalTxt="";
+  if(goal&&p){const idx=p.next.findIndex(v=>v>=goal);goalTxt=p.cur>=goal?`지금 속도면 이미 목표 월 ${man(goal)}원에 닿아 있습니다.`:idx>=0?`이대로 가면 약 <b>${idx+1}개월 뒤</b> 목표 월 ${man(goal)}원에 닿을 것으로 보입니다.`:`목표 월 ${man(goal)}원까지는 아직 거리가 있습니다. 속도가 붙으면 예상치도 함께 올라갑니다.`}
+  const firstWeek=weeks(rows)[0];
+  return `
+  ${isSample()?`<div class="sample">예시 데이터입니다. 건당 단가는 버팀목 탭 아래 설정에서 바꿀 수 있습니다.</div>`:""}
+  <div><p class="label">수입 변화</p><h1>버틴 만큼 늘어나는 수입</h1></div>
+  ${p?`<section class="card">
+    <div class="grid2">
+      <div class="stat"><span class="label">지금 속도의 월 예상 매출</span><span class="v num">${man(p.cur)}원</span><span class="small muted">최근 2주 하루 평균 × ${p.W}일</span></div>
+      <div class="stat"><span class="label">3개월 뒤 예상</span><span class="v num" style="color:var(--tape)">${man(p.next[2])}원</span><span class="small muted">${p.slope>0?"지금 오르는 추세 반영":"최근 추세는 제자리"}</span></div>
+    </div>
+    ${firstWeek?`<p class="small">첫 주 하루 평균 <b>${man(firstWeek.inc)}원</b> → 최근 2주 하루 평균 <b>${man(p.daily)}원</b></p>`:""}
+    ${goalTxt?`<p class="small">${goalTxt}</p>`:""}
+  </section>`:""}
+  <section class="card"><h2>월별 수입</h2>
+    <div class="legend"><span><i style="background:var(--accent)"></i>지난달까지</span><span><i style="background:var(--accent-soft);border:1px solid var(--accent)"></i>이번 달(진행 중)</span><span><i style="background:var(--tape-soft);border:1px dashed var(--tape)"></i>예상</span></div>
+    <div class="chart">${incomeChart(ms,p)}</div>
+    <p class="small muted">예상치는 최근 4주 동안 하루 수입이 늘어난 속도를 바탕으로, 시간이 갈수록 오름폭이 줄어든다고 보고 계산했습니다. 실제 수입은 물량, 구역, 단가에 따라 달라집니다.</p>
+  </section>
+  <section class="card"><h2>보통 이렇게 자리 잡습니다</h2>
+    <p class="small">처음 한두 달은 구역을 외우느라 물량을 다 받지 못하는 경우가 많습니다. 길이 익으면 같은 시간에 더 많은 물량을 소화하게 되고, 수입도 그만큼 따라옵니다. 보통 3개월 무렵부터 수입이 안정됩니다.</p>
+    <p class="small muted">수입 그래프가 아직 낮다면, 그건 기사님이 아직 2단계 이전에 있기 때문입니다. 계단은 위로만 나 있습니다.</p>
+  </section>`;
+}
+
+function viewSupport(){
+  const s=state.settings;
+  return `
+  <div><p class="label">버팀목</p><h1>힘든 날을 위한 자리</h1></div>
+  <section class="card"><div class="quote"><p>${esc(quoteOfDay())}</p></div><button class="btn ghost" type="button" data-act="another">다른 글귀 보기</button><p class="small" id="another" aria-live="polite"></p></section>
+  ${s.pledge?pledgeCard():pledgeForm()}
+  <section class="card"><h2>내가 시작한 이유</h2>
+    ${s.why?`<div class="why">${esc(s.why)}</div>`:`<p class="small muted">왜 이 일을 시작했는지 적어 두세요. 힘든 날 가장 먼저 보여드립니다. 가족, 빚, 내 차, 내 가게처럼 구체적일수록 힘이 됩니다.</p>`}
+    ${s.goal?`<p class="small"><b>이루고 싶은 것:</b> ${esc(s.goal)}</p>`:""}
+  </section>
+  <section class="card"><h2>버텨낸 기록</h2>
+    <p class="big num">${s.holds?`그만두고 싶었던 순간을 ${s.holds}번 넘겼습니다.`:"아직 이 버튼을 누른 적이 없습니다."}</p>
+    <p class="small muted">그만두고 싶은 마음이 들 때 아래 버튼을 눌러 보세요. 바로 결정하지 않고 한 번 더 생각할 수 있도록 도와드립니다.</p>
+    <button class="btn tape" type="button" data-act="quit">오늘 그만두고 싶어요</button>
+  </section>
+  <section class="card"><h2>내 정보와 설정</h2>
+    <form id="settings">
+      <div class="row"><div class="field"><label for="s-name">이름(호칭)</label><input id="s-name" value="${esc(s.name)}" placeholder="예: 김민수"></div>
+      <div class="field"><label for="s-start">첫 출근일</label><input id="s-start" type="date" value="${esc(s.start)}"></div></div>
+      <div class="row"><div class="field"><label for="s-unit">건당 단가(원)</label><input id="s-unit" type="number" inputmode="numeric" min="0" value="${esc(s.unit)}"></div>
+      <div class="field"><label for="s-work">한 달 근무일</label><input id="s-work" type="number" inputmode="numeric" min="1" max="31" value="${esc(s.workdays)}"></div></div>
+      <div class="field"><label for="s-goalinc">목표 월수입(만원)</label><input id="s-goalinc" type="number" inputmode="numeric" min="0" value="${s.goalIncome?Math.round(s.goalIncome/10000):""}" placeholder="예: 600"></div>
+      <div class="field"><label for="s-why">내가 이 일을 시작한 이유</label><textarea id="s-why" placeholder="예: 아이 학원비를 내 힘으로 내고 싶어서">${esc(s.why)}</textarea></div>
+      <div class="field"><label for="s-pledge">나의 다짐</label><textarea id="s-pledge" maxlength="300" placeholder="예: 석 달은 무슨 일이 있어도 버틴다">${esc(s.pledge)}</textarea></div>
+      <div class="field"><label for="s-goal">1년 뒤 이루고 싶은 것</label><input id="s-goal" value="${esc(s.goal)}" placeholder="예: 내 차 사서 지입 시작하기"></div>
+      <button class="btn" type="submit">저장</button>
+    </form>
+    <p class="small muted">수입을 따로 적지 않은 날은 배송 수량 × 건당 단가로 계산합니다.</p>
+  </section>
+  <section class="card"><h2>기록 옮기기</h2>
+    <p class="small muted">휴대폰을 바꿀 때 백업 코드를 복사해 두었다가, 새 휴대폰에서 붙여넣으면 기록이 그대로 옮겨집니다.</p>
+    <div class="row"><button class="btn ghost" type="button" data-act="backup">백업 코드 복사</button><button class="btn ghost" type="button" data-act="restore">백업 코드 붙여넣기</button></div>
+    <textarea id="backup-box" hidden aria-label="백업 코드"></textarea>
+    <button class="btn" type="button" id="restore-go" hidden>이 코드로 복원</button>
+    <p class="small" id="backup-msg" aria-live="polite"></p>
+  </section>`;
+}
+
+/* ---------- entry sheet ---------- */
+function openEntry(date){
+  const ex=state.entries.find(e=>e.d===(date||today()))||{};
+  const d=date||today();
+  layer(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="entry-t">
+   <div class="sheet-head"><h2 id="entry-t">운행일지 쓰기</h2><button class="x" type="button" data-close>닫기</button></div>
+   <form id="entry">
+    <div class="field"><label for="f-date">날짜</label><input id="f-date" type="date" value="${d}" required></div>
+    <div class="row"><div class="field"><label for="f-in">입차 시간</label><input id="f-in" type="time" value="${esc(ex.in||"07:00")}" required></div>
+    <div class="field"><label for="f-out">배송 완료 시간</label><input id="f-out" type="time" value="${esc(ex.out||"")}" required></div></div>
+    <div class="row"><div class="field"><label for="f-qty">배송 수량(건)</label><input id="f-qty" type="number" inputmode="numeric" min="1" value="${esc(ex.qty||"")}" required></div>
+    <div class="field"><label for="f-inc">오늘 수입(원, 선택)</label><input id="f-inc" type="number" inputmode="numeric" min="0" value="${ex.inc?esc(ex.inc):""}" placeholder="비우면 자동 계산"></div></div>
+    <div class="field"><span class="label" id="mood-l">오늘 하루 어땠나요</span><div class="mood" role="group" aria-labelledby="mood-l">${MOODS.map(([k,t])=>`<button type="button" data-mood="${k}" aria-pressed="${(ex.mood||"ok")===k}">${t}</button>`).join("")}</div></div>
+    <div class="field"><label for="f-memo">한 줄 메모(선택)</label><input id="f-memo" value="${esc(ex.memo||"")}" placeholder="예: 3동 엘리베이터 고장, 계단으로"></div>
+    <button class="btn" type="submit">기록 저장</button>
+   </form></div>`);
+}
+function saveEntry(f){
+  const mood=(f.querySelector('[data-mood][aria-pressed="true"]')||{}).dataset?.mood||"ok";
+  const e={d:f.querySelector("#f-date").value,in:f.querySelector("#f-in").value,out:f.querySelector("#f-out").value,qty:Number(f.querySelector("#f-qty").value)||0,inc:Number(f.querySelector("#f-inc").value)||0,mood,memo:f.querySelector("#f-memo").value.trim().slice(0,80)};
+  if(!e.d||!e.qty)return;
+  const wasEmpty=state.entries.length===0;
+  state.entries=state.entries.filter(x=>x.d!==e.d);state.entries.push(e);
+  if(!state.settings.start||e.d<state.settings.start)state.settings.start=wasEmpty?e.d:(e.d<state.settings.start?e.d:state.settings.start);
+  persist();closeLayer();render();
+  const rows=enrich(state.entries),ws=weeks(rows),me=rows.find(r=>r.d===e.d);
+  let msg;
+  if(wasEmpty)msg="첫 기록을 남겼습니다. 오늘이 기사님 성장 그래프의 출발점입니다.";
+  else if(mood==="hard")msg="힘든 하루였지만 끝까지 마치셨습니다. "+QUOTES[Math.floor(Math.random()*QUOTES.length)];
+  else if(ws.length>1&&me&&me.minPer&&ws[0].minPer&&me.minPer<ws[0].minPer)msg=`오늘은 한 건에 ${me.minPer.toFixed(1)}분. 첫 주보다 ${(ws[0].minPer-me.minPer).toFixed(1)}분 빨라졌습니다.`;
+  else msg="오늘 기록을 저장했습니다. 수고 많으셨습니다.";
+  toast(msg);
+}
+
+/* ---------- quit flow ---------- */
+let qStep=0,qTimer=null;
+function openQuit(){qStep=0;renderQuit()}
+function renderQuit(){
+  clearInterval(qTimer);
+  const rows=data(),ws=weeks(rows),s=state.settings;
+  const total=rows.reduce((p,r)=>p+r.qty,0);
+  const steps=`<div class="steps">${[0,1,2,3].map(i=>`<i class="${i<=qStep?"on":""}"></i>`).join("")}</div>`;
+  let body="";
+  if(qStep===0)body=`<h2>잠깐만요. 숨부터 같이 쉬어요.</h2><p class="muted">원이 커질 때 들이쉬고, 작아질 때 내쉬세요. 30초면 됩니다.</p><div class="breath" aria-hidden="true"><span id="q-count" class="num">30</span></div><button class="btn" type="button" data-q="next">다음</button>`;
+  if(qStep===1){const f=ws[0],l=ws[ws.length-1];
+    body=`<h2>기사님이 지금까지 해낸 것</h2><div class="grid2"><div class="stat"><span class="label">일한 날</span><span class="v num">${rows.length}일</span></div><div class="stat"><span class="label">누적 배송</span><span class="v num">${total.toLocaleString("ko-KR")}건</span></div></div>
+    ${f&&l&&ws.length>1&&f.minPer&&l.minPer?`<p class="big">첫 주엔 한 건에 ${f.minPer.toFixed(1)}분, 지금은 ${l.minPer.toFixed(1)}분입니다.</p><p class="muted">몸은 이미 이 일을 배우고 있습니다. 지금 그만두면 그 배움이 여기서 멈춥니다.</p>`:`<p class="big">처음은 누구에게나 가장 어렵습니다.</p><p class="muted">지금 느끼는 힘듦은 실력이 없어서가 아니라 아직 길이 낯설어서입니다.</p>`}
+    ${isSample()?`<p class="small muted">기록을 남기기 시작하면 이 화면에 기사님의 실제 숫자가 나옵니다.</p>`:""}
+    <button class="btn" type="button" data-q="next">다음</button>`}
+  if(qStep===2)body=`<h2>처음 시작할 때 이렇게 적으셨어요</h2>${s.pledge?`<div class="why"><span class="label">${esc((s.pledgeDate||"").replace(/-/g,"."))}의 다짐</span>\n${esc(s.pledge)}</div>`:""}${s.why?`<div class="why">${esc(s.why)}</div>${s.goal?`<p><b>1년 뒤 이루고 싶은 것:</b> ${esc(s.goal)}</p>`:""}`:`<p class="muted">아직 시작한 이유를 적지 않으셨습니다. 지금 적어 보세요. 다음에 힘들 때 이 화면에 그대로 보여드립니다.</p><div class="field"><label for="q-why">내가 이 일을 시작한 이유</label><textarea id="q-why" placeholder="예: 가족에게 당당한 가장이 되고 싶어서"></textarea></div>`}<button class="btn" type="button" data-q="next">다음</button>`;
+  if(qStep===3)body=`<h2>오늘은 결정하지 않기로 해요</h2><p>지친 날 내린 결정은 대부분 지친 몸이 내린 결정입니다. 푹 자고, 밥 든든히 먹고, 괜찮은 날에 다시 생각해도 늦지 않습니다.</p>
+    <button class="btn tape" type="button" data-q="hold">하루만 더 해보겠습니다</button>
+    <hr><h3>혼자 견디지 마세요</h3><p class="small">소속 센터 담당자나 먼저 시작한 선배 기사님께 오늘 있었던 일을 그대로 이야기해 보세요. 구역 조정이나 물량 조절로 풀리는 경우가 생각보다 많습니다.</p>
+    <p class="small muted">마음이 너무 무겁다면 정신건강 위기상담 <b class="num">1577-0199</b>, 자살예방 상담전화 <b class="num">109</b>에서 24시간 이야기를 들어줍니다.</p>
+    <button class="btn ghost" type="button" data-close>닫기</button>`;
+  layer(`<div class="sheet" role="dialog" aria-modal="true"><div class="sheet-head">${steps}<button class="x" type="button" data-close>닫기</button></div>${body}</div>`);
+  if(qStep===0){let n=30;qTimer=setInterval(()=>{n--;const el=document.getElementById("q-count");if(el)el.textContent=n>0?n:"좋아요";if(n<=0)clearInterval(qTimer)},1000)}
+}
+
+/* ---------- layer / toast ---------- */
+const $layer=document.getElementById("layer");
+function layer(html){$layer.innerHTML=`<div class="overlay" data-backdrop>${html}</div>`;const f=$layer.querySelector("input,textarea,button");if(f)f.focus({preventScroll:true})}
+function closeLayer(){clearInterval(qTimer);$layer.innerHTML=""}
+function toast(msg){const t=document.createElement("div");t.className="toast";t.setAttribute("role","status");t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),4200)}
+
+/* ---------- render ---------- */
+const TABS=[["home","오늘",'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'],["grow","성장",'<path d="M3 20h18M5 16l4-5 4 3 6-8"/><path d="M15 6h4v4"/>'],["money","수입",'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'],["support","버팀목",'<path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/>']];
+function renderTabs(){document.getElementById("tabs").innerHTML=TABS.map(([k,t,p])=>`<button class="tab" role="tab" type="button" aria-selected="${tab===k}" data-tab="${k}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>${t}</button>`).join("")}
+function renderSync(){const el=document.getElementById("sync");if(el)el.textContent=docRef?"내 계정에 저장":"이 기기에 저장"}
+function render(){
+  const v={home:viewHome,grow:viewGrow,money:viewMoney,support:viewSupport}[tab]();
+  document.getElementById("app").innerHTML=v;renderTabs();renderSync();
+  try{sessionStorage.setItem(LS+"-tab",tab)}catch(e){}
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",async ev=>{
+  const t=ev.target.closest("button,[data-backdrop]");if(!t)return;
+  if(t.matches("[data-backdrop]")){if(ev.target===t)closeLayer();return}
+  if(t.dataset.tab){tab=t.dataset.tab;render();window.scrollTo(0,0);return}
+  if(t.id==="fab"){openEntry();return}
+  if(t.hasAttribute("data-close")){closeLayer();return}
+  if(t.dataset.hint){const ta=document.getElementById("p-text");if(ta){const cur=ta.value.trim();if(!cur.includes(t.dataset.hint))ta.value=cur?cur+"\n"+t.dataset.hint+".":t.dataset.hint+".";ta.focus()}return}
+  if(t.dataset.mood){t.parentElement.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b===t)));return}
+  if(t.dataset.edit){openEntry(t.dataset.edit);return}
+  if(t.dataset.del){
+    if(t.dataset.confirm){state.entries=state.entries.filter(e=>e.d!==t.dataset.del);persist();render();toast("기록을 삭제했습니다.")}
+    else{t.dataset.confirm="1";t.textContent="정말 삭제";setTimeout(()=>{if(t.isConnected){delete t.dataset.confirm;t.textContent="삭제"}},3000)}
+    return}
+  const a=t.dataset.act;
+  if(a==="quit"){openQuit();return}
+  if(a==="another"){const el=document.getElementById("another");el.textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];return}
+  if(a==="backup"){const code=btoa(unescape(encodeURIComponent(JSON.stringify(state))));const box=document.getElementById("backup-box");box.hidden=false;box.value=code;document.getElementById("restore-go").hidden=true;const msg=document.getElementById("backup-msg");
+    try{await navigator.clipboard.writeText(code);msg.textContent="백업 코드를 복사했습니다. 메모장이나 카톡 나에게 보내기에 붙여넣어 두세요."}catch(e){box.select();msg.textContent="자동 복사가 안 되는 화면입니다. 위 칸의 코드를 길게 눌러 복사해 주세요."}return}
+  if(a==="restore"){const box=document.getElementById("backup-box");box.hidden=false;box.value="";box.placeholder="여기에 백업 코드를 붙여넣으세요";box.focus();document.getElementById("restore-go").hidden=false;document.getElementById("backup-msg").textContent="";return}
+  if(t.id==="restore-go"){const msg=document.getElementById("backup-msg");try{const v=JSON.parse(decodeURIComponent(escape(atob(document.getElementById("backup-box").value.trim()))));adopt(v);persist();render();toast("기록을 복원했습니다.")}catch(e){msg.textContent="코드를 읽지 못했습니다. 복사한 코드 전체를 빠짐없이 붙여넣었는지 확인해 주세요."}return}
+  if(t.dataset.q==="next"){if(qStep===2){const w=document.getElementById("q-why");if(w&&w.value.trim()){state.settings.why=w.value.trim().slice(0,400);persist()}}qStep++;renderQuit();return}
+  if(t.dataset.q==="hold"){state.settings.holds=(Number(state.settings.holds)||0)+1;state.settings.lastHold=today();persist();closeLayer();render();toast(`좋습니다. 그만두고 싶은 순간을 ${state.settings.holds}번째 넘기셨습니다. 내일의 기사님은 오늘보다 조금 더 익숙할 겁니다.`);return}
+});
+document.addEventListener("submit",ev=>{
+  ev.preventDefault();const f=ev.target;
+  if(f.id==="entry"){saveEntry(f);return}
+  if(f.id==="pledge-form"){const txt=f.querySelector("#p-text").value.trim().slice(0,300);if(!txt){f.querySelector("#p-text").focus();toast("다짐을 한 줄이라도 적어 주세요.");return}
+    state.settings.pledge=txt;state.settings.pledgeDate=today();const nm=f.querySelector("#p-name").value.trim().slice(0,20);if(nm)state.settings.name=nm;
+    persist();render();toast("다짐을 저장했습니다. 힘든 날 이 다짐을 다시 보여드릴게요.");return}
+  if(f.id==="settings"){const s=state.settings;
+    s.name=f.querySelector("#s-name").value.trim().slice(0,20);s.start=f.querySelector("#s-start").value;
+    s.unit=Math.max(0,Number(f.querySelector("#s-unit").value)||0);s.workdays=Math.min(31,Math.max(1,Number(f.querySelector("#s-work").value)||24));
+    s.goalIncome=(Number(f.querySelector("#s-goalinc").value)||0)*10000;s.why=f.querySelector("#s-why").value.trim().slice(0,400);s.goal=f.querySelector("#s-goal").value.trim().slice(0,80);
+    const np=f.querySelector("#s-pledge").value.trim().slice(0,300);if(np&&np!==s.pledge&&!s.pledgeDate)s.pledgeDate=today();s.pledge=np;
+    persist();render();toast("저장했습니다.")}
+});
+document.addEventListener("keydown",ev=>{if(ev.key==="Escape"&&$layer.innerHTML)closeLayer()});
+
+loadLocal();
+try{const t=sessionStorage.getItem(LS+"-tab");if(t&&["home","grow","money","support"].includes(t))tab=t}catch(e){}
+render();
+initCloud();
+})();
+</script>
+
+</body></html>
